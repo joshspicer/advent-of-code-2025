@@ -1,0 +1,37 @@
+#!/bin/bash
+
+DAY=${1:-$(date +%d)}
+DAY_DIR=$(printf "%02d" $DAY)
+
+if [ -d "$DAY_DIR" ]; then
+  echo "Day $DAY_DIR already exists"
+  exit 1
+fi
+
+mkdir -p "$DAY_DIR"
+touch "$DAY_DIR/example"
+touch "$DAY_DIR/puzzle"
+
+cat > "$DAY_DIR/main.go" <<'EOF'
+package main
+
+import "fmt"
+
+func main() {
+	part01()
+	part02()
+}
+
+func part01() {
+	fmt.Println("Day XX - Part 1")
+}
+
+func part02() {
+	fmt.Println("Day XX - Part 2")
+}
+EOF
+
+# Update the day number in the template
+sed -i "s/Day XX/Day $DAY_DIR/g" "$DAY_DIR/main.go"
+
+echo "Created day $DAY_DIR"

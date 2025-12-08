@@ -7,11 +7,9 @@ import (
 	"strconv"
 )
 
-const DAY = "01"
+// ======================================================== //
 
 var _debug bool
-var EXAMPLE = fmt.Sprintf("%s/%s", DAY, "example")
-var PUZZLE = fmt.Sprintf("%s/%s", DAY, "puzzle")
 
 func DEBUG(a ...any) {
 	if _debug {
@@ -25,11 +23,12 @@ func DEBUGF(format string, a ...any) {
 	}
 }
 
-func Run(debug bool, example bool) {
+// ======================================================== //
+
+func Run(debug bool, targetFile string) (int64, int64) {
 	_debug = debug
-	targetFile := shared.If(example, EXAMPLE, PUZZLE)
 	lines := shared.ReadLines(targetFile)
-	state := state{50, 0}
+	state := state{50, 0, 0}
 	for _, l := range lines {
 		dir, dist := parse(l)
 		state.next(dir, dist)
@@ -37,37 +36,76 @@ func Run(debug bool, example bool) {
 			state.stopsAtZero++
 		}
 	}
-	part01(state)
-	part02(state)
+	// Part 1
+	fmt.Println(state.stopsAtZero)
+	// Part 2
+	fmt.Println(state.clicksPastZero)
+
+	return state.stopsAtZero, state.clicksPastZero
 }
 
-type Direction int
+type Direction string
 
 const (
-	Left = iota
-	Right
+	Left  = "L"
+	Right = "R"
 )
 
 type state struct {
-	position    int64
-	stopsAtZero int64
+	position       int64
+	stopsAtZero    int64
+	clicksPastZero int64
 }
 
 func (s *state) next(direction Direction, distance int64) {
 	DEBUG(s.position)
-	DEBUG(" --> ")
+	DEBUGF(" ---[%s%d]---> ", direction, distance)
 
 	var val int64
+	var oldPosition = s.position
 	switch direction {
 	case Left:
 		val = (s.position + (100 - distance))
-
 	case Right:
 		val = (s.position + (100 + distance))
 	}
 
 	s.position = val % 100
-	DEBUG(s.position, "\n")
+	if s.position < 0 {
+		s.position += 100
+	}
+	DEBUG(s.position)
+
+	if oldPosition == 0 {
+		if oldPosition+distance > 100 {
+			count := (distance / 100)
+			DEBUGF(" [*zero(%d)*] ", count)
+			s.clicksPastZero += count
+		}
+	} else {
+		switch direction {
+		case Left:
+			var count int64 = 0
+			tmpDistance := distance
+			for oldPosition-tmpDistance <= 0 {
+				count += 1
+				tmpDistance -= 100
+			}
+			DEBUGF(" [*left(%d)*] ", count)
+			s.clicksPastZero += count
+		case Right:
+			var count int64 = 0
+			tmpDistance := distance
+			for oldPosition+tmpDistance >= 100 {
+				count += 1
+				tmpDistance -= 100
+			}
+			DEBUGF(" [*right(%d)*] ", count)
+			s.clicksPastZero += count
+		}
+	}
+
+	DEBUG("\n")
 }
 
 func parse(line string) (Direction, int64) {
@@ -89,12 +127,4 @@ func parse(line string) (Direction, int64) {
 	}
 
 	return direction, distance
-}
-
-func part01(state state) {
-	fmt.Println(state.stopsAtZero)
-}
-
-func part02(state state) {
-	fmt.Print("Part 2")
 }

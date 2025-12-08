@@ -1,6 +1,11 @@
 #!/bin/bash
 
-DAY=${1:-$(date +%d)}
+DAY="$1"
+
+if [ -z "$DAY"]; then
+   echo "Usage: ./new <DAY>"
+fi
+
 DAY_DIR=$(printf "%02d" $DAY)
 
 if [ -d "$DAY_DIR" ]; then
@@ -11,22 +16,29 @@ fi
 mkdir -p "$DAY_DIR"
 touch "$DAY_DIR/example"
 touch "$DAY_DIR/puzzle"
+touch "$DAY_DIR/instructions.md"
 
-cat > "$DAY_DIR/main.go" <<'EOF'
+cat > "$DAY_DIR/main.go" <<EOF
 package main
 
 import "fmt"
 
-func main() {
-	part01()
-	part02()
+const DAY = "$DAY_DIR"
+var EXAMPLE = fmt.Sprintf("%s/%s", DAY, "example")
+var PUZZLE = fmt.Sprintf("%s/%s", DAY, "puzzle")
+
+func Run(debug bool) {
+	targetFile := shared.If(debug, EXAMPLE, PUZZLE)
+	lines := shared.ReadLines(targetFile)
+	part01(lines)
+	part02(lines)
 }
 
-func part01() {
+func part01(lines []string) {
 	fmt.Println("Day XX - Part 1")
 }
 
-func part02() {
+func part02(lines []string) {
 	fmt.Println("Day XX - Part 2")
 }
 EOF

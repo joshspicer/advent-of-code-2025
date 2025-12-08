@@ -1,49 +1,118 @@
 #!/bin/bash
+set -euo pipefail
 
-DAY="$1"
+DAY="${1:-}"
 
-if [ -z "$DAY"]; then
-   echo "Usage: ./new <DAY>"
-fi
-
-DAY_DIR=$(printf "%02d" $DAY)
-
-if [ -d "$DAY_DIR" ]; then
-  echo "Day $DAY_DIR already exists"
+if [ -z "$DAY" ]; then
+  echo "Usage: ./new <DAY>" >&2
   exit 1
 fi
 
-mkdir -p "$DAY_DIR"
-touch "$DAY_DIR/example"
-touch "$DAY_DIR/puzzle"
-touch "$DAY_DIR/instructions.md"
+DAY_DIR=$(printf "%02d" "$DAY")
+
+if [ -d "$DAY_DIR" ]; then
+  echo "Day $DAY_DIR already exists" >&2
+  exit 1
+fi
+
+mkdir -p "$DAY_DIR/tests"
+touch "$DAY_DIR/example" "$DAY_DIR/puzzle" "$DAY_DIR/custom"
 
 cat > "$DAY_DIR/main.go" <<EOF
-package main
+package day$DAY_DIR
 
-import "fmt"
+import (
+	"advent-of-code-2025/shared"
+	"fmt"
+)
 
-const DAY = "$DAY_DIR"
-var EXAMPLE = fmt.Sprintf("%s/%s", DAY, "example")
-var PUZZLE = fmt.Sprintf("%s/%s", DAY, "puzzle")
+const Day = "$DAY_DIR"
 
-func Run(debug bool) {
-	targetFile := shared.If(debug, EXAMPLE, PUZZLE)
+// Run executes both parts and returns their results.
+func Run(debug bool, targetFile string) (int64, int64) {
+	_ = debug // TODO: wire up debugging if needed
+
 	lines := shared.ReadLines(targetFile)
-	part01(lines)
-	part02(lines)
-}
 
-func part01(lines []string) {
-	fmt.Println("Day XX - Part 1")
-}
+	var part01 int64
+	var part02 int64
 
-func part02(lines []string) {
-	fmt.Println("Day XX - Part 2")
+	// TODO: implement solutions using lines
+	fmt.Println(lines[0])
+
+	fmt.Println(part01)
+	fmt.Println(part02)
+
+	return part01, part02
 }
 EOF
 
-# Update the day number in the template
-sed -i "s/Day XX/Day $DAY_DIR/g" "$DAY_DIR/main.go"
+cat > "$DAY_DIR/main_test.go" <<EOF
+package day$DAY_DIR
+
+import "testing"
+
+func TestExample(t *testing.T) {
+	t.Skip("TODO: add example expectations")
+
+	part01, part02 := Run(true, "example")
+	var expected01 int64
+	var expected02 int64
+
+	if part01 != expected01 {
+		t.Fatalf("Part 01: got %d, expected %d", part01, expected01)
+	}
+
+	if part02 != expected02 {
+		t.Fatalf("Part 02: got %d, expected %d", part02, expected02)
+	}
+}
+
+func TestPuzzle(t *testing.T) {
+	t.Skip("TODO: add puzzle expectations")
+
+	part01, part02 := Run(true, "puzzle")
+	var expected01 int64
+	var expected02 int64
+
+	if part01 != expected01 {
+		t.Fatalf("Part 01: got %d, expected %d", part01, expected01)
+	}
+
+	if part02 != expected02 {
+		t.Fatalf("Part 02: got %d, expected %d", part02, expected02)
+	}
+}
+
+func TestSamples(t *testing.T) {
+	t.Skip("TODO: add test cases in tests/")
+
+	part01, part02 := Run(true, "tests/01")
+	var expected01 int64
+	var expected02 int64
+
+	if part01 != expected01 {
+		t.Fatalf("Part 01: got %d, expected %d", part01, expected01)
+	}
+
+	if part02 != expected02 {
+		t.Fatalf("Part 02: got %d, expected %d", part02, expected02)
+	}
+}
+EOF
+
+ENV_FILE=".env"
+if [ ! -f "$ENV_FILE" ]; then
+	cat > "$ENV_FILE" <<EOF
+DAY=$DAY_DIR
+DEBUG=yes
+EOF
+else
+	if grep -q "^DAY=" "$ENV_FILE"; then
+		sed -i "s/^DAY=.*/DAY=$DAY_DIR/" "$ENV_FILE"
+	else
+		echo "DAY=$DAY_DIR" >> "$ENV_FILE"
+	fi
+fi
 
 echo "Created day $DAY_DIR"

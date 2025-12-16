@@ -39,9 +39,10 @@ func Run(debug bool, targetFile string) (int, int) {
 	// DEBUG(pairs)
 	for _, p := range pairs {
 		part01 += examineRange(p, p1Filter)
-
+		part02 += examineRange(p, p2Filter)
 	}
-	DEBUGF("Part 01:   %d", part01)
+	DEBUGF("\nPart 01:   %d\n", part01)
+	DEBUGF("Part 02:   %d\n", part02)
 
 	return part01, part02
 }
@@ -72,6 +73,23 @@ func p1Filter(num int) bool {
 		numBuckets = numBuckets - 2
 	}
 	// Assume failure
+	return false
+}
+
+func p2Filter(num int) bool {
+	if num < 10 {
+		return false
+	}
+	s := fmt.Sprintf("%d", num)
+
+	numBuckets := len(s)
+	for numBuckets > 1 {
+		buckets := shared.BucketString(s, numBuckets)
+		if shared.AllEqual(buckets...) {
+			return true
+		}
+		numBuckets = numBuckets - 1
+	}
 	return false
 }
 

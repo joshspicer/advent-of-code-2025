@@ -28,16 +28,33 @@ import (
 
 const Day = "$DAY_DIR"
 
+// ======================================================== //
+
+var _debug bool
+
+func DEBUG(a ...any) {
+	if _debug {
+		fmt.Fprint(os.Stderr, a...)
+	}
+}
+
+func DEBUGF(format string, a ...any) {
+	if _debug {
+		fmt.Fprintf(os.Stderr, format, a...)
+	}
+}
+
+// ======================================================== //
+
 // Run executes both parts and returns their results.
-func Run(debug bool, targetFile string) (int64, int64) {
-	_ = debug // TODO: wire up debugging if needed
+func Run(debug bool, targetFile string) (int, int) {
+	_debug = debug
 
 	lines := shared.ReadLines(targetFile)
 
-	var part01 int64
-	var part02 int64
+	var part01 int
+	var part02 int
 
-	// TODO: implement solutions using lines
 	fmt.Println(lines[0])
 
 	fmt.Println(part01)
@@ -56,8 +73,8 @@ func TestExample(t *testing.T) {
 	t.Skip("TODO: add example expectations")
 
 	part01, part02 := Run(true, "example")
-	var expected01 int64
-	var expected02 int64
+	var expected01 int
+	var expected02 int
 
 	if part01 != expected01 {
 		t.Fatalf("Part 01: got %d, expected %d", part01, expected01)
@@ -72,8 +89,8 @@ func TestPuzzle(t *testing.T) {
 	t.Skip("TODO: add puzzle expectations")
 
 	part01, part02 := Run(true, "puzzle")
-	var expected01 int64
-	var expected02 int64
+	var expected01 int
+	var expected02 int
 
 	if part01 != expected01 {
 		t.Fatalf("Part 01: got %d, expected %d", part01, expected01)
@@ -88,8 +105,8 @@ func TestSamples(t *testing.T) {
 	t.Skip("TODO: add test cases in tests/")
 
 	part01, part02 := Run(true, "tests/01")
-	var expected01 int64
-	var expected02 int64
+	var expected01 int
+	var expected02 int
 
 	if part01 != expected01 {
 		t.Fatalf("Part 01: got %d, expected %d", part01, expected01)

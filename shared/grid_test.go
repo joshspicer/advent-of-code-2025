@@ -29,7 +29,7 @@ func TestToGrid(t *testing.T) {
 
 	terr, err := grid.At(3, 3)
 	if err == nil {
-		t.Fatalf("expected error, got", terr)
+		t.Fatalf("expected error, got %s", terr)
 	}
 
 	fmt.Print(grid.String())

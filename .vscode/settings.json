@@ -1,5 +1,6 @@
 {
     "chat.disableAIFeatures": true,
     "task.autoDetect": "off",
-    "adventOfCodeKeybindings.enabled": true 
+    "adventOfCodeKeybindings.enabled": true ,
+    "debug.console.collapseIdenticalLines": false
 }

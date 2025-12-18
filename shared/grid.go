@@ -35,6 +35,14 @@ func (g Grid[T]) Copy() Grid[T] {
 	return out
 }
 
+func (g Grid[T]) MutateIgnoringBounds(row, col int, value T) bool {
+	if !g.InBounds(row, col) {
+		return false
+	}
+	g.Mutate(row, col, value)
+	return true
+}
+
 func (g Grid[T]) Mutate(row, col int, value T) {
 	g[row][col] = value
 }

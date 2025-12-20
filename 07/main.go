@@ -38,10 +38,14 @@ func Run(debug bool, targetFile string) (int, int) {
 	var part01 int
 	var part02 int
 
+	// Counts how many times we observe this beam successfully split
+	seen := shared.CreateSet()
+
 	keepGoing := true
 	for keepGoing {
 		prevGrid := grid.Copy()
 		grid.ForEach(func(row, col int, v string) {
+			freeSpace := false
 			switch v {
 			case "S":
 				grid.MutateIgnoringBounds(row+1, col, "|")
@@ -52,21 +56,9 @@ func Run(debug bool, targetFile string) (int, int) {
 					// ignore
 				}
 				if above == "|" {
-					if grid.MutateIgnoringBounds(row, col-1, "|") {
-						// note: Arbitrarily choosing to count left successful mutations
-						if prevLeft, err := prevGrid.At(row, col-1); err == nil {
-							if prevLeft != "|" {
-								part01++
-							}
-						}
-					}
-					if grid.MutateIgnoringBounds(row, col+1, "|") {
-						// if prevRight, err := prevGrid.At(row, col+1); err == nil {
-						// if prevRight != "|" {
-						// part01++
-						// }
-						// }
-					}
+					seen.Add(fmt.Sprintf("%d,%d", row, col))
+					grid.MutateIgnoringBounds(row, col-1, "|")
+					grid.MutateIgnoringBounds(row, col+1, "|")
 				}
 			case "|":
 				below, err := grid.At(row+1, col)
@@ -76,14 +68,24 @@ func Run(debug bool, targetFile string) (int, int) {
 				if below != "^" {
 					grid.MutateIgnoringBounds(row+1, col, "|")
 				}
+			case ".":
+				freeSpace = true
 			}
 
-			// DEBUG(grid.String() + "\n")
+			// DEBUG
+			if !freeSpace {
+				DEBUG(grid.String() + "\n")
+				DEBUG(seen.Size())
+				DEBUG("\n\n\n\n")
+			}
+
 		})
 		if grid.String() == prevGrid.String() {
 			keepGoing = false
 		}
 	}
+
+	part01 = seen.Size()
 
 	fmt.Println(part01)
 	fmt.Println(part02)

@@ -8,6 +8,7 @@ import (
 	day05 "advent-of-code-2025/05"
 	day06 "advent-of-code-2025/06"
 	day07 "advent-of-code-2025/07"
+	day08 "advent-of-code-2025/08"
 	"fmt"
 	"os"
 )
@@ -34,6 +35,8 @@ func main() {
 		day06.Run(debug, fmt.Sprintf("%s/%s", day, fileName))
 	case "07":
 		day07.Run(debug, fmt.Sprintf("%s/%s", day, fileName))
+	case "08":
+		day08.Run(debug, fmt.Sprintf("%s/%s", day, fileName))
 	default:
 		err := fmt.Errorf("missing day %s", day)
 		panic(err)

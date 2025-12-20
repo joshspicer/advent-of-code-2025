@@ -86,3 +86,19 @@ func ReverseString(s string) string {
 	}
 	return string(runes)
 }
+
+func Map[T any, M any](a []T, f func(T) M) []M {
+	n := make([]M, len(a))
+	for i, e := range a {
+		n[i] = f(e)
+	}
+	return n
+}
+
+func Max(a, b int) int {
+	// Ignore all the good special case handling
+	if a > b {
+		return a
+	}
+	return b
+}

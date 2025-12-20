@@ -53,7 +53,7 @@ func Run(debug bool, targetFile string) (int, int) {
 				}
 				if above == "|" {
 					if grid.MutateIgnoringBounds(row, col-1, "|") {
-						// note: Arbitrarily choosing to count left succesful mutations
+						// note: Arbitrarily choosing to count left successful mutations
 						if prevLeft, err := prevGrid.At(row, col-1); err == nil {
 							if prevLeft != "|" {
 								part01++
@@ -78,14 +78,12 @@ func Run(debug bool, targetFile string) (int, int) {
 				}
 			}
 
-			DEBUG(grid.String() + "\n")
+			// DEBUG(grid.String() + "\n")
 		})
 		if grid.String() == prevGrid.String() {
 			keepGoing = false
 		}
 	}
-
-	DEBUG(grid.String())
 
 	fmt.Println(part01)
 	fmt.Println(part02)

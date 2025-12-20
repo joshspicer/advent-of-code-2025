@@ -35,6 +35,7 @@ func (g Grid[T]) Copy() Grid[T] {
 	return out
 }
 
+// Returns if the mutation occurred or not
 func (g Grid[T]) MutateIgnoringBounds(row, col int, value T) bool {
 	if !g.InBounds(row, col) {
 		return false

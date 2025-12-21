@@ -26,7 +26,6 @@ func DEBUGF(format string, a ...any) {
 
 // ======================================================== //
 
-// Run executes both parts and returns their results.
 func Run(debug bool, targetFile string) (int, int) {
 	_debug = debug
 
@@ -38,14 +37,11 @@ func Run(debug bool, targetFile string) (int, int) {
 	var part01 int
 	var part02 int
 
-	// Counts how many times we observe this beam successfully split
-	seen := shared.CreateSet()
-
 	keepGoing := true
+	seen := shared.CreateSet[string]()
 	for keepGoing {
 		prevGrid := grid.Copy()
 		grid.ForEach(func(row, col int, v string) {
-			freeSpace := false
 			switch v {
 			case "S":
 				grid.MutateIgnoringBounds(row+1, col, "|")
@@ -69,14 +65,7 @@ func Run(debug bool, targetFile string) (int, int) {
 					grid.MutateIgnoringBounds(row+1, col, "|")
 				}
 			case ".":
-				freeSpace = true
-			}
-
-			// DEBUG
-			if !freeSpace {
-				DEBUG(grid.String() + "\n")
-				DEBUG(seen.Size())
-				DEBUG("\n\n\n\n")
+				// Skip
 			}
 
 		})
@@ -86,8 +75,37 @@ func Run(debug bool, targetFile string) (int, int) {
 	}
 
 	part01 = seen.Size()
-
 	fmt.Println(part01)
+
+	graph := shared.ToDAG(grid, func(r, c int) ([]shared.Tuple[int], shared.DFlags) {
+		flags := shared.None
+		if val, err := grid.At(r, c); err == nil {
+			edges := make([]shared.Tuple[int], 0)
+			switch val {
+			case "S":
+				// Special case
+				flags |= shared.Start
+				edges = append(edges, shared.Tuple[int]{r + 1, c})
+			case "|":
+				edges = grid.CollectAdjacentIndices(r, c, []string{"|", "^"}, []shared.Tuple[int]{{1, 0}})
+				if r == grid.Height()-1 {
+					// Final Row
+					flags |= shared.End
+				}
+			case "^":
+				edges = grid.CollectAdjacentIndices(r, c, []string{"|"}, []shared.Tuple[int]{{0, -1}, {0, 1}})
+			case ".":
+				// Uninteresting
+			default:
+				panic("unexpected")
+			}
+			return edges, flags
+		}
+		return make([]shared.Tuple[int], 0), flags
+	})
+	start := graph.WithFlags(shared.Start)
+	part02 = int(graph.CountPaths(start[0]))
+
 	fmt.Println(part02)
 
 	return part01, part02

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type Tuple[T any] struct {
+type Tuple[T comparable] struct {
 	First  T
 	Second T
 }

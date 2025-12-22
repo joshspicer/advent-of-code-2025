@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Puzzle (No Debug)",
+            "name": "Puzzle (No Debug)",
             "type": "go",
             "request": "launch",
             "mode": "debug",
@@ -14,7 +14,7 @@
             }
         },
         {
-            "name": "Launch Example",
+            "name": "Example",
             "type": "go",
             "request": "launch",
             "mode": "debug",
@@ -25,7 +25,7 @@
             }
         },
         {
-            "name": "Launch Puzzle",
+            "name": "Puzzle",
             "type": "go",
             "request": "launch",
             "mode": "debug",
@@ -36,7 +36,7 @@
             }
         },
         {
-            "name": "Launch Custom",
+            "name": "Custom",
             "type": "go",
             "request": "launch",
             "mode": "debug",

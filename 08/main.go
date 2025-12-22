@@ -39,6 +39,8 @@ func Run(debug bool, targetFile string) (int, int) {
 	_debug = debug
 
 	lines := shared.ReadLines(targetFile)
+	isExample := strings.Contains(targetFile, "example")
+	DEBUGF("isExample=%t\n", isExample)
 	points := make([]Point3D, 0)
 	for _, line := range lines {
 		vals := strings.Split(line, ",")
@@ -60,30 +62,74 @@ func Run(debug bool, targetFile string) (int, int) {
 		points = append(points, Point3D{x, y, z})
 	}
 
-	DEBUG(points)
-	DEBUG("\n")
+	N := 1000
+	if isExample {
+		N = 10
+	}
 
-	var minimalPair shared.Tuple[Point3D]
-	minimalDistance := math.MaxFloat64
-	for idxA, a := range points {
-		for idxB, b := range points {
-			if idxA == idxB {
-				continue
-			}
+	less := func(p, q Point3D) bool {
+		if p.x != q.x {
+			return p.x < q.x
+		}
+		if p.y != q.y {
+			return p.y < q.y
+		}
+		return p.z < q.z
+	}
 
-			currDist := distance(a, b)
-			// DEBUGF("%v and %v are %f apart\n", a, b, currDist)
-			if currDist < minimalDistance {
-				minimalPair = shared.Tuple[Point3D]{a, b}
-				minimalDistance = currDist
+	normalizePair := func(a, b Point3D) shared.Tuple[Point3D] {
+		if less(a, b) {
+			return shared.Tuple[Point3D]{a, b}
+		}
+		return shared.Tuple[Point3D]{b, a}
+	}
+
+	graph := shared.MakeAdjacencyList[Point3D]()
+	seen := make(map[shared.Tuple[Point3D]]bool, 0)
+	// Build graph
+	for range N {
+		var minimalPair shared.Tuple[Point3D]
+		minimalDistance := math.MaxFloat64
+		found := false
+
+		for idxA, a := range points {
+			for idxB, b := range points {
+				if idxA == idxB {
+					continue
+				}
+
+				currPair := normalizePair(a, b)
+				if seen[currPair] {
+					continue
+				}
+
+				currDist := distance(a, b)
+				if currDist < minimalDistance {
+					minimalPair = currPair
+					minimalDistance = currDist
+					found = true
+				}
 			}
 		}
-	}
-	DEBUG(minimalPair)
-	DEBUGF("\n3d %f", distance(Point3D{0, 3, 0}, Point3D{4, 0, 0}))
 
-	var part01 int
+		if !found {
+			break // no unused edges left
+		}
+
+		seen[minimalPair] = true
+		graph.AddEdge(minimalPair.First, minimalPair.Second, true)
+	}
+
+	part01 := 1
 	var part02 int
+
+	for idx, b := range graph.Components() {
+		if idx > 2 { // Only three largest circuits
+			break
+		}
+		DEBUG(len(b), b, "\n")
+		part01 *= len(b)
+	}
 
 	fmt.Println(part01)
 	fmt.Println(part02)
@@ -92,8 +138,8 @@ func Run(debug bool, targetFile string) (int, int) {
 }
 
 func distance(a Point3D, b Point3D) float64 {
-	X := math.Pow(float64(a.x-b.x), 2)
-	Y := math.Pow(float64(a.y-b.y), 2)
-	Z := math.Pow(float64(a.z-b.z), 2)
+	X := (a.x - b.x) * (a.x - b.x)
+	Y := (a.y - b.y) * (a.y - b.y)
+	Z := (a.z - b.z) * (a.z - b.z)
 	return math.Pow(float64(X+Y+Z), 1.0/2.0)
 }

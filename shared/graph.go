@@ -15,8 +15,9 @@ const (
 )
 
 type AdjacencyList[N comparable] struct {
-	Edges map[N]*Set[N]
-	Flags map[N]DFlags
+	Edges               map[N]*Set[N]
+	Flags               map[N]DFlags
+	VerticesStableOrder []N
 }
 
 func (adjList *AdjacencyList[N]) ensureNode(n N) {
@@ -25,16 +26,27 @@ func (adjList *AdjacencyList[N]) ensureNode(n N) {
 	}
 }
 
+func MakeAdjacencyList[N comparable]() AdjacencyList[N] {
+	return AdjacencyList[N]{Edges: make(map[N]*Set[N]), Flags: make(map[N]DFlags), VerticesStableOrder: make([]N, 0)}
+}
+
 func (adjList *AdjacencyList[N]) AddEdge(from, to N, undirected bool) {
 	adjList.ensureNode(from)
 	adjList.Edges[from].Add(to)
+
+	adjList.addVertexImpl(from)
+	adjList.addVertexImpl(to)
+
 	if undirected {
 		adjList.AddEdge(to, from, false)
 	}
 }
 
-func MakeAdjacencyList[N comparable]() AdjacencyList[N] {
-	return AdjacencyList[N]{Edges: make(map[N]*Set[N]), Flags: make(map[N]DFlags)}
+func (adjList *AdjacencyList[N]) addVertexImpl(v N) {
+	if slices.Contains(adjList.VerticesStableOrder, v) {
+		return
+	}
+	adjList.VerticesStableOrder = append(adjList.VerticesStableOrder, v)
 }
 
 type point2D = Tuple[int]
@@ -124,6 +136,72 @@ func (adjList AdjacencyList[N]) dfCount(curr N, memo map[N]uint64) uint64 {
 // Expects a *DAG*
 func (adjList AdjacencyList[N]) CountPaths(start N) uint64 {
 	return adjList.dfCount(start, make(map[N]uint64, 0))
+}
+
+// Returns a list of all the individually connected components in the graph
+func (adjList AdjacencyList[N]) Components() [][]N {
+	components := make([][]N, 0)
+
+	visitedVertices := CreateSet[N]() // Keep track so we do not traverse a given connected component more than once
+	for _, v := range adjList.VerticesStableOrder {
+		if visitedVertices.Contains(v) {
+			continue
+		}
+		path := adjList.pathToNodeFrom(v)
+		c := make([]N, 0)
+
+		for t := range path {
+			c = append(c, t)
+			visitedVertices.Add(t)
+		}
+		components = append(components, c)
+	}
+
+	// Sorry, inefficent
+	slices.SortFunc(components, func(a, b []N) int {
+		return len(b) - len(a)
+	})
+
+	return components
+}
+
+// bfs for path from a 'start' node
+func (adjList AdjacencyList[N]) pathToNodeFrom(start N) map[N]bool {
+	visited := make(map[N]bool, len(adjList.VerticesStableOrder))
+
+	queue := make([]N, 0)
+	dequeue := func() (result N, empty bool) {
+		var r N
+		if len(queue) == 0 {
+			return r, true
+		}
+		r = queue[0]
+		queue = queue[1:]
+		return r, false
+	}
+	enqueue := func(item N) {
+		queue = append(queue, item)
+	}
+
+	enqueue(start)
+	visited[start] = true
+
+	for {
+		t, empty := dequeue()
+		if empty {
+			break
+		}
+
+		adjList.Edges[t].ForEach(func(v N) {
+			if !visited[v] {
+				// not yet visited
+				enqueue(v)
+				visited[v] = true // or, distances[v] = distances[t] + 1
+			}
+		})
+
+	}
+	return visited
 }
 
 func (adjList AdjacencyList[N]) String() string {

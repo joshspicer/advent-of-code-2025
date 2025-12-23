@@ -11,6 +11,7 @@ import (
 	day08 "advent-of-code-2025/08"
 	"fmt"
 	"os"
+	"time"
 )
 
 func main() {
@@ -20,6 +21,8 @@ func main() {
 	if day == "" {
 		panic("Missing DAY env variable")
 	}
+
+	start := time.Now()
 	switch day {
 	case "01":
 		day01.Run(debug, fmt.Sprintf("%s/%s", day, fileName))
@@ -41,4 +44,6 @@ func main() {
 		err := fmt.Errorf("missing day %s", day)
 		panic(err)
 	}
+	elapsed := time.Since(start)
+	fmt.Printf("\nDay %s completed in %s\n", day, elapsed)
 }

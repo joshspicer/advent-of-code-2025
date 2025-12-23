@@ -3,8 +3,8 @@ package day08
 import (
 	"advent-of-code-2025/shared"
 	"fmt"
-	"math"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -62,66 +62,36 @@ func Run(debug bool, targetFile string) (int, int) {
 		points = append(points, Point3D{x, y, z})
 	}
 
+	graph := shared.MakeAdjacencyList[Point3D]()
+
+	allPossiblePairs := make([]shared.Tuple[Point3D], 0)
+	for idxA := 0; idxA < len(points); idxA++ {
+		a := points[idxA]
+		for idxB := idxA + 1; idxB < len(points); idxB++ {
+			b := points[idxB]
+			allPossiblePairs = append(allPossiblePairs, shared.Tuple[Point3D]{a, b})
+		}
+	}
+	slices.SortFunc(allPossiblePairs, func(p, q shared.Tuple[Point3D]) int {
+		Q := distance(q.First, q.Second)
+		P := distance(p.First, p.Second)
+		return P - Q
+	})
+
+	DEBUG(allPossiblePairs)
+
+	part01 := 1
+	var part02 int
+
 	N := 1000
 	if isExample {
 		N = 10
 	}
 
-	less := func(p, q Point3D) bool {
-		if p.x != q.x {
-			return p.x < q.x
-		}
-		if p.y != q.y {
-			return p.y < q.y
-		}
-		return p.z < q.z
+	for idx := range N {
+		nextMinimalPair := allPossiblePairs[idx]
+		graph.AddEdge(nextMinimalPair.First, nextMinimalPair.Second, true)
 	}
-
-	normalizePair := func(a, b Point3D) shared.Tuple[Point3D] {
-		if less(a, b) {
-			return shared.Tuple[Point3D]{a, b}
-		}
-		return shared.Tuple[Point3D]{b, a}
-	}
-
-	graph := shared.MakeAdjacencyList[Point3D]()
-	seen := make(map[shared.Tuple[Point3D]]bool, 0)
-	// Build graph
-	for range N {
-		var minimalPair shared.Tuple[Point3D]
-		minimalDistance := math.MaxFloat64
-		found := false
-
-		for idxA, a := range points {
-			for idxB, b := range points {
-				if idxA == idxB {
-					continue
-				}
-
-				currPair := normalizePair(a, b)
-				if seen[currPair] {
-					continue
-				}
-
-				currDist := distance(a, b)
-				if currDist < minimalDistance {
-					minimalPair = currPair
-					minimalDistance = currDist
-					found = true
-				}
-			}
-		}
-
-		if !found {
-			break // no unused edges left
-		}
-
-		seen[minimalPair] = true
-		graph.AddEdge(minimalPair.First, minimalPair.Second, true)
-	}
-
-	part01 := 1
-	var part02 int
 
 	for idx, b := range graph.Components() {
 		if idx > 2 { // Only three largest circuits
@@ -137,9 +107,11 @@ func Run(debug bool, targetFile string) (int, int) {
 	return part01, part02
 }
 
-func distance(a Point3D, b Point3D) float64 {
+func distance(a Point3D, b Point3D) int {
 	X := (a.x - b.x) * (a.x - b.x)
 	Y := (a.y - b.y) * (a.y - b.y)
 	Z := (a.z - b.z) * (a.z - b.z)
-	return math.Pow(float64(X+Y+Z), 1.0/2.0)
+	//return math.Pow(float64(X+Y+Z), 1.0/2.0)
+	// Optimize by not taking the square root
+	return X + Y + Z
 }

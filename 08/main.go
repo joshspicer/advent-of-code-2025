@@ -63,8 +63,8 @@ func Run(debug bool, targetFile string) (int, int) {
 	}
 
 	graph := shared.MakeAdjacencyList[Point3D]()
-
 	allPossiblePairs := make([]shared.Tuple[Point3D], 0)
+
 	for idxA := 0; idxA < len(points); idxA++ {
 		a := points[idxA]
 		for idxB := idxA + 1; idxB < len(points); idxB++ {
@@ -78,10 +78,9 @@ func Run(debug bool, targetFile string) (int, int) {
 		return P - Q
 	})
 
-	DEBUG(allPossiblePairs)
+	// DEBUG(allPossiblePairs)
 
 	part01 := 1
-	var part02 int
 
 	N := 1000
 	if isExample {
@@ -97,8 +96,26 @@ func Run(debug bool, targetFile string) (int, int) {
 		if idx > 2 { // Only three largest circuits
 			break
 		}
-		DEBUG(len(b), b, "\n")
 		part01 *= len(b)
+	}
+
+	var part02 int
+
+	// Keep going until graph is fully connected
+	nextIdx := N - 1
+	fullyConnected := false
+	for !fullyConnected {
+		nextIdx++
+		nextMinimalPair := allPossiblePairs[nextIdx]
+		graph.AddEdge(nextMinimalPair.First, nextMinimalPair.Second, true)
+		if len(graph.VerticesStableOrder) != len(points) {
+			continue
+		}
+		if components := graph.Components(); len(components) == 1 {
+			fullyConnected = true
+			DEBUG("done with pair", nextMinimalPair)
+			part02 = nextMinimalPair.First.x * nextMinimalPair.Second.x
+		}
 	}
 
 	fmt.Println(part01)
